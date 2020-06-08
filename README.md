@@ -35,6 +35,13 @@ rasterVis:: levelplot(VAR4_GLM_ALLYEAR, col.regions=rev(pal),layout=c(5,3), marg
 
 
 
+#trend analysis pp
+time <- ts(c(7,23,30,31,38))
+ras <- setZ(pp, time, "Time")
+pptime = setZ(pp,c(7,23,30,31,38),"time")
+
+
+
 
 
 
@@ -51,7 +58,6 @@ datapp$time <- replace(datapp$time, datapp$time==5, 38)
 
 summary(datapp)
 
-checkres
 
 
 model <- glm(datapp$value~ datapp$time, na.action = na.omit)
@@ -65,13 +71,6 @@ caret::train(datapp$value~ datapp$time,
 
 
 
-
-
-
-#trend analysis pp
-time <- ts(c(7,23,30,31,38))
-ras <- setZ(pp, time, "Time")
-pptime = setZ(pp,c(7,23,30,31,38),"time")
 
 
 calculateSlope <- function(x) {if (is.na(x[1])) {NA} else{ lm(x ~ time)$coefficients[2] }}
