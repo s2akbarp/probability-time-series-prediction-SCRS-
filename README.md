@@ -27,19 +27,15 @@ rasterVis:: levelplot(VAR4_GLM_ALLYEAR, col.regions=rev(pal),layout=c(5,3), marg
 #turn the stacked rasters for each  category to dataframe, the probability maps for each land cover is fpr unequall time step (7,23,30,31,38). Showing the rate of changes in each time step. I am trying to use spatio-temporal interplation to devise a model for predicting the rate annualy.
 
 #trend analysis (category= landcover pp )
-time <- ts(c(7,23,30,31,38))
-ras <- setZ(pp, time, "Time")
+            ##time <- ts(c(7,23,30,31,38))
+            ##ras <- setZ(pp, time, "Time")
+
+
+
 pptime = setZ(pp,c(7,23,30,31,38),"time")
-
-
-
-
-
-
-
-
 datapp<- as.data.frame(pptime, xy=TRUE)
-datapp <- reshape(datapp, direction='long', varying=3:ncol(datapp), v.names='value', timevar='time')
+datapp <- reshape(datapp,direction='long',varying=3:ncol(datapp),v.names='value', timevar='time')
+
 datapp=na.omit(datapp)
 datapp$time <- replace(datapp$time, datapp$time==1, 7)
 datapp$time <- replace(datapp$time, datapp$time==2, 23)
@@ -50,7 +46,7 @@ datapp$time <- replace(datapp$time, datapp$time==5, 38)
 summary(datapp)
 
 
-
+#fit model
 model <- glm(datapp$value~ datapp$time, na.action = na.omit)
 
 
