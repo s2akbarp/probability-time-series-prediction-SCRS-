@@ -18,28 +18,24 @@ names(pp)=c('PP(7Years)','PP(23Years)','PP(30Years)','PP(31Years)','PP(38Years)'
 names(pb)=c('PB(7Years)','PB(23Years)','PB(30Years)','PB(31Years)','PB(38Years)')
 VAR4_GLM_ALLYEAR=raster::stack(pF,pb,bf)
 
-extentbound= extent(590318, 591223,6797968, 6799086)
+#time step data frame 
 
+#bf
+bftime = setZ(bf,c(7,23,30,31,38),"time")
+databf<- as.data.frame(bftime, xy=TRUE)
+databf <- reshape(databf,direction='long',varying=3:ncol(databf),v.names='value', timevar='time')
+databf$time <- replace(databf$time, databf$time==1, 7)
+databf$time <- replace(databf$time, databf$time==2, 23)
+databf$time <- replace(databf$time, databf$time==3, 30)
+databf$time <- replace(databf$time, databf$time==4, 31)
+databf$time <- replace(databf$time, databf$time==5, 38)
+databf=na.omit(databf)
 
-
-
-
-#plots
-pal <- wesanderson::wes_palette("Zissou1", 50, type = "continuous")
-rasterVis:: levelplot(VAR4_GLM_ALLYEAR, col.regions=rev(pal),layout=c(5,3), margin = TRUE, colorkey = list(space = "bottom"), scales=list(draw=FALSE ))
-
-
-
-#trend analysis (category= landcover pp )
-##time <- ts(c(7,23,30,31,38))
-##ras <- setZ(pp, time, "Time")
-
-
+#pp
 
 pptime = setZ(pp,c(7,23,30,31,38),"time")
 datapp<- as.data.frame(pptime, xy=TRUE)
 datapp <- reshape(datapp,direction='long',varying=3:ncol(datapp),v.names='value', timevar='time')
-
 datapp=na.omit(datapp)
 datapp$time <- replace(datapp$time, datapp$time==1, 7)
 datapp$time <- replace(datapp$time, datapp$time==2, 23)
@@ -47,99 +43,81 @@ datapp$time <- replace(datapp$time, datapp$time==3, 30)
 datapp$time <- replace(datapp$time, datapp$time==4, 31)
 datapp$time <- replace(datapp$time, datapp$time==5, 38)
 
-summary(datapp)
-library(plotly)
-# volcano is a numeric matrix that ships with R
-z <- c(pp$PP.7Years.,pp$PP.23Years.,pp$PP.30Years.,pp$PP.30Years.,pp$PP.31Years.,pp$PP.38Years.)
-z=na.omit(z)
-newelev=na.omit(newelev)
 
-library(plotly)
-data=as.data.frame(pp, row.names=NULL, optional=FALSE, xy=TRUE, na.rm=FALSE, long=FALSE)
-plot_ly() %>% 
-  add_trace(data = data,  x=data$x, y=data$y, z=data$PP.23Years., type="mesh3d" ) 
+#plots
+pal <- wesanderson::wes_palette("Zissou1", 50, type = "continuous")
+rasterVis:: levelplot(VAR4_GLM_ALLYEAR, col.regions=rev(pal),layout=c(5,3), margin = TRUE, colorkey = list(space = "bottom"), scales=list(draw=FALSE ))
 
-(rgl.printRglwidget = TRUE)
-library(plotly)
-zz <- data.frame(c(0,0,0,0,0),c(0.1,.2,.4,.2,.1),c(0.2,.4,.8,.4,.2),c(0.1,.2,.4,.2,.1),c(0,0,0,0,0))
-zz <- cbind(t(zz),rep(NA,length(zz[,1])))
-xx <- rep(seq(-1,1.5,.5),5)
-print(plot_ly(z=zz,x=xx, type="surface"))
+#trend analysis (category= landcover pp )
 
+  ##time <- ts(c(7,23,30,31,38))
+  ##ras <- setZ(pp, time, "Time")
 
-
-
-
-
-
-
-
-
-#fit model
-model <- glm(datapp$value~ datapp$time, na.action = na.omit)
-
-r_list <- list()
+# linear model pp
 time <- ts(c(7,23,30,31,38))
-for (i in time) {
-  r_list[[i]] <- setValues(x = pptime, values = rnorm(n = ncell(pptime), mean = i, sd = 0.1))
-}
-
+pptime = setZ(pp,c(7,23,30,31,38),"time")
 bfun <- function(x) { if (is.na(x[1])){ c(NA, NA) } else {lm(x ~ time)$coefficients}} 
-
-
 x <- calc(pptime, bfun)
-p1 <- x[[1]] + x[[2]] * time
-pfun <- function(x) { if (is.na(x[1])){ rep(NA, length(x)) } else { predict( lm(x ~ time))}} 
-p2 <- calc(ras, pfun)
+p1 <- x[[1]] + x[[2]] * 200
+
+p1[p1$layer<=0.1] <-NA
+p1[p1$layer>1] <- 1
+
+spplot(p1)
+
+# linear model bf
+bftime = setZ(bf,c(7,23,30,31,38),"time")
+time <- ts(c(7,23,30,31,38))
+bffun <- function(x) { if (is.na(x[1])){ c(NA, NA) } else {lm(x ~ time)$coefficients}} 
+bftrend <- calc(bftime, bffun)
+bfeq <- bftrend[[1]] + bftrend[[2]] * 200
+
+bfeq[bfeq$layer<0] <- 0
+bfeq[bfeq$layer>=1] <- NA
+spplot(bfeq)
+
+
+
+# linear model pb
+pbtime = setZ(pb,c(7,23,30,31,38),"time")
+time <- ts(c(7,23,30,31,38))
+pbfun <- function(x) { if (is.na(x[1])){ c(NA, NA) } else {lm(x ~ time)$coefficients}} 
+pbtrend <- calc(pbtime, pbfun)
+pbeq <- pbtrend[[1]] + pbtrend[[2]] * 200
+
+pbeq[pbeq$layer<0] <- 0
+pbeq[pbeq$layer>=1] <- NA
+spplot(pbeq)
+
+
+# linear model pf
+pftime = setZ(pF,c(7,23,30,31,38),"time")
+time <- ts(c(7,23,30,31,38))
+pffun <- function(x) { if (is.na(x[1])){ c(NA, NA) } else {lm(x ~ time)$coefficients}} 
+pftrend <- calc(pftime, pffun)
+pfeq <- pftrend[[1]] + pftrend[[2]] * 200
+
+pfeq[pfeq$layer<0] <- 0
+pfeq[pfeq$layer>=1] <-NA
+spplot(prob100)
+
+
+prob100=stack(pfeq,pbeq,bfeq,p1)
+names(prob100)=c('PF(100Years)','PB(100Years)','BF(100Years)','PP(100Years)')
+rasterVis:: levelplot(prob100, col.regions=rev(pal),layout=c(4,1), margin = TRUE, colorkey = list(space = "bottom"), scales=list(draw=FALSE ))
 
 
 
 
-
-
-
-
-
-lm_intercept <- calc(pptime, fun = function(x) {
-  if (all(is.na(x)))
-    return(NA)
-  else
-    return(coef(lm(x ~ time))[1])
-})
-
-lm_slope <- calc(pptime, fun = function(x) {
-  if (all(is.na(x)))
-    return(NA)
-  else
-    return(coef(lm(x ~ time))[2])
-})
-
-sss=lm_slope * 50 + lm_intercept
-
-
-
-
-
-
-
-
-
-
-
-
-
-plot(sss)
 
 library(animation)
 ani.options(interval=.05)
 
 saveGIF({
-  for (i in 1:aaa){
-    rclmat <-pptime
-    plot(rclmat, legend=FALSE, main = paste("Day", i))
+  for (i in 1:prob100){
+    rclmat <-prob100
+    plot(prob100, legend=FALSE, main = paste("Day", i))
   }
 }) 
-
-
 
 
