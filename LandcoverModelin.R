@@ -1,17 +1,7 @@
 #data 
-tr_30<- raster::raster("tr_30years.tif", values=TRUE)
-plot(tr_30)
-#data all variables 
-stack1970_2000_4_pp=stack(tr_30,Var_dis_1970,Var_lst_1970,Var_NDVI_1970,Var_NDWI_1970)
-stack1970_2000_4_pB=stack(tr_30,Var_disB_1970,Var_lst_1970,Var_NDVI_1970,Var_NDWI_1970)
-stack1970_2000_4_pF=stack(tr_30,Var_disF_1970,Var_lst_1970,Var_NDVI_1970,Var_NDWI_1970)
-stack1970_2000_4_bf=stack(tr_30, Var_cost_1970,Var_lstb_1970,Var_NDVIb_1970,Var_NDWIbf_1970)
-plot(stack1970_2000_4_pF)
-#data dis
-stack1970_2000_DIS_pp=stack(tr_30,Var_dis_1970)
-stack1970_2000_DIS_pB=stack(tr_30,Var_disB_1970)
-stack1970_2000_DIS_pF=stack(tr_30,Var_disF_1970)
-stack1970_2000_DIS_bf=stack(tr_30, Var_cost_1970)
+directpro2var=list.files("C:/My Data/phd/data/paper1/landcover_modeling/Transitionmap_2var/all years/result_glm/both_1970onward",all.files = FALSE,pattern = "*.tif")
+
+
 
 #prediction 1970
 stack1970_4_pp=stack(Var_dis_1970,Var_lst_1970,Var_NDVI_1970,Var_NDWI_1970)
