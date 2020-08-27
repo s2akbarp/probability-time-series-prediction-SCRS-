@@ -1,14 +1,85 @@
-#prediction 1970
-stack1970_4_pp=stack(Var_dis_1970,Var_lst_1970,Var_NDVI_1970,Var_NDWI_1970)
-stack1970_4_pB=stack(Var_disB_1970,Var_lst_1970,Var_NDVI_1970,Var_NDWI_1970)
-stack1970_4_pF=stack(Var_disF_1970,Var_lst_1970,Var_NDVI_1970,Var_NDWI_1970)
-stack1970_4_bf=stack(Var_cost_1970,Var_lstb_1970,Var_NDVIb_1970,Var_NDWIb_1970)
+#packages
+library(rgdal)
+library(caret)
+library(raster)
+library(mapview)
+library(sf)
+library(e1071)
 
-#prediction 2000
-stack2000_4_pp=stack(Var_dis_2000,Var_lst_2000,Var_NDVI_2000,Var_NDWI_2000)
-stack2000_4_pB=stack(Var_disB_2000,Var_lst_2000,Var_NDVI_2000,Var_NDWI_2000)
-stack2000_4_pF=stack(Var_disF_2000,Var_lst_2000,Var_NDVI_2000,Var_NDWI_2000)
-stack2000_4_bf=stack(Var_cost_2000,Var_lst_2000,Var_NDVI_2000,Var_NDWIb_2000)
+
+
+
+
+
+
+#import Dataset
+
+
+depVariables=list.files("C:/Onedrive/OneDrive - University of Waterloo/My Data/phd/data/paper1/landcover_modeling/NewBoundry/landcover/change",all.files = FALSE,pattern = "*.tif")
+indepVariables=list.files("C:/Onedrive/OneDrive - University of Waterloo/My Data/phd/data/paper1/landcover_modeling/NewBoundry/data/Independent_var",all.files = FALSE,pattern = ".tif")
+
+
+
+
+#data preperation
+
+
+#2000 independent varisbles
+Land2000=brick("Landsat2000.tif" )
+cost2000=raster("cost2000.tif")
+EU2000=raster("EU2000.tif")
+#stack different extent
+extent(ratio2000)=extent(Land2000)
+cost2000=resample(cost2000,Land2000)
+EU2000=resample(EU2000,Land2000)
+ratio2000=resample(ratio2000,Land2000)
+
+Indep2000=stack(Land2000,cost2000,EU2000,ratio2000)
+
+#2010 independent varisbles
+Land2010=brick("Landsat2010.tif" )
+cost2010=raster("cost2010.tif")
+EU2010=raster("EU2010.tif")
+ratio2010=raster("ratio2010.tif")
+#stack different extent
+extent(ratio2010)=extent(Land2010)
+cost2010=resample(cost2010,Land2010)
+EU2010=resample(EU2010,Land2010)
+ratio2010=resample(ratio2010,Land2010)
+Indep2010=stack(Land2010,cost2010,EU2010,ratio2010)
+
+
+plot(Overlay)
+
+
+#dependent
+land2000to2010=raster("C2000to2010.tif")
+land2000to2019=raster("c2000to2019.tif")
+land2010to2019=raster("c2010to2019.tif")
+
+#final data by creating a stack of rastyer layer overlayed on each other
+Variables2000to2010 <- stack(land2000to2010, Indep2000)
+Variables2010to2019 <- stack(land2010to2019, Indep2010)
+Variables2000to2019 <- stack(land2000to2019, Indep2000)
+
+
+#partitioning the dataset
+#2000to2010
+Datapartion2000to2010=createDataPartition(Variables2000to2010$C2000to2010,list = FALSE,p=0.3)
+trained=Overlay[Datapartion,]
+test=Overlay[-Datapartion,]
+
+trained=na.omit(trained)
+
+# variables
+DependVar="Class"
+IndependVar=c("blue",  "green", "red",  "nir",  "swir", "NDVI",  "NDWI","SAVI","LST")
+
+
+
+
+
+
 
 plot(stack1970_2000_4_bf)
 #dataframe
